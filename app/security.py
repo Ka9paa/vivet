@@ -29,9 +29,12 @@ def create_owner_token(owner_id: str) -> str:
     return jwt.encode({"sub": owner_id, "exp": exp}, settings.jwt_secret, algorithm=ALGORITHM)
 
 
-def create_panel_token(subject: str, kind: str = "owner") -> str:
+def create_panel_token(subject: str, kind: str = "owner", extra: dict | None = None) -> str:
     exp = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
-    return jwt.encode({"sub": subject, "kind": kind, "exp": exp}, settings.jwt_secret, algorithm=ALGORITHM)
+    payload = {"sub": subject, "kind": kind, "exp": exp}
+    if extra:
+        payload.update(extra)
+    return jwt.encode(payload, settings.jwt_secret, algorithm=ALGORITHM)
 
 def decode_panel_token(token: str) -> dict | None:
     try:

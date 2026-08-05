@@ -7,38 +7,30 @@
       <div class="simple-wordmark"><img src="/static/vivet-logo.png" alt="Vivet"><span>VIVET</span></div>
       <div class="simple-brand-content">
         <img class="simple-hero-logo" src="/static/vivet-logo.png" alt="Vivet logo">
-        <h1>Everything you need.<br><span>Nothing you don’t.</span></h1>
-        <p>Secure licensing, user management, and real-time control in one clean workspace.</p>
+        <h1>Private access.<br><span>Verified by Discord.</span></h1>
+        <p>Vivet checks your server membership and assigned role before the dashboard can open.</p>
         <div class="simple-features">
-          <div><b>✓</b><span><strong>Secure</strong><small>Signed authentication responses</small></span></div>
-          <div><b>↗</b><span><strong>Fast</strong><small>Built for instant management</small></span></div>
-          <div><b>●</b><span><strong>Reliable</strong><small>Real data and clear status</small></span></div>
+          <div><b>✓</b><span><strong>Role protected</strong><small>Owner or Auth Access role required</small></span></div>
+          <div><b>↗</b><span><strong>Instant sync</strong><small>Discord roles are checked at every sign-in</small></span></div>
+          <div><b>●</b><span><strong>No passwords</strong><small>No public registration or shared credentials</small></span></div>
         </div>
       </div>
-      <div class="simple-brand-footer"><span><i></i> All systems operational</span><span>Vivet v1.0</span></div>
+      <div class="simple-brand-footer"><span><i></i> Discord verification online</span><span>Vivet v1.0</span></div>
     </aside>
 
     <section class="simple-login-card-wrap">
-      <div class="simple-login-card">
-        <span class="simple-kicker">WELCOME BACK</span>
-        <h2>Sign in to Vivet</h2>
-        <p class="simple-subtitle">Access your owner panel and manage your platform.</p>
+      <div class="simple-login-card discord-only-card">
+        <span class="simple-kicker">AUTHORIZED MEMBERS ONLY</span>
+        <h2>Continue to Vivet</h2>
+        <p class="simple-subtitle">Sign in with the Discord account holding an approved server role.</p>
 
-        {% if request.query_params.get('discord') == 'unauthorized' %}<div class="auth-error"><span>!</span><div><strong>Access denied</strong><small>Your Discord account has not been authorized.</small></div></div>{% endif %}
-        {% if request.query_params.get('discord') == 'failed' %}<div class="auth-error"><span>!</span><div><strong>Discord sign in failed</strong><small>Please try again.</small></div></div>{% endif %}
-        {% if error %}<div class="auth-error"><span>!</span><div><strong>Sign in failed</strong><small>{{ error }}</small></div></div>{% endif %}
+        {% if request.query_params.get('discord') == 'unauthorized' %}<div class="auth-error"><span>!</span><div><strong>Access denied</strong><small>Your Discord account does not have Owner or Auth Access.</small></div></div>{% endif %}
+        {% if request.query_params.get('discord') == 'failed' %}<div class="auth-error"><span>!</span><div><strong>Discord verification failed</strong><small>Please retry with the correct Discord account.</small></div></div>{% endif %}
+        {% if request.query_params.get('discord') == 'disabled' %}<div class="auth-error"><span>!</span><div><strong>Discord OAuth is not configured</strong><small>Check the Vercel environment variables.</small></div></div>{% endif %}
 
-        <form method="post" class="simple-login-form">
-          <label>Username<div class="simple-field"><span>◉</span><input id="username" name="username" placeholder="Enter your username" autocomplete="username" required autofocus></div></label>
-          <label>Password<div class="simple-field"><span>⌁</span><input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required><button type="button" data-password-toggle="password">Show</button></div></label>
-          <div class="simple-login-options"><label><input type="checkbox" name="remember"><span></span>Keep me signed in</label><small>Owner access only</small></div>
-          <button class="simple-submit" type="submit"><span>Access Owner Panel</span><b>→</b></button>
-        </form>
-
-        <div class="simple-divider"><span>or continue with</span></div>
-        <a class="discord-login" href="/login/discord"><span>◈</span> Continue with Discord</a>
-        <div class="simple-security"><b>✓</b><span><strong>Protected by Vivet Shield</strong><small>Encrypted sessions and permission-based access.</small></span></div>
-        <p class="simple-copyright">© 2026 Vivet. All rights reserved.</p>
+        <a class="discord-login discord-primary" href="/login/discord"><span>◈</span><b>Continue with Discord</b><i>→</i></a>
+        <div class="simple-security"><b>✓</b><span><strong>Permission checked automatically</strong><small>Removing the Discord role removes access on the next login.</small></span></div>
+        <p class="simple-copyright">© 2026 Vivet. Private system.</p>
       </div>
     </section>
   </section>

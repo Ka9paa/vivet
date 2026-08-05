@@ -1,61 +1,55 @@
 {% extends 'shell.html' %}{% block content %}
-<div class="page-heading dashboard-heading">
-  <div><h1>Welcome back, <span>{{ owner.username }}</span> <b>👋</b></h1><p>Here’s what’s happening with your platform today.</p></div>
-</div>
+<header class="dash-header hero-header">
+  <div>
+    <div class="eyebrow"><span></span> VIVET CONTROL CENTER</div>
+    <h1>Welcome back, <span>{{ owner.username }}</span></h1>
+    <p>Everything you need to license, protect, and scale your software from one place.</p>
+  </div>
+  <div class="header-actions">
+    <a class="secondary-btn" href="/docs">API Documentation</a>
+    <button class="primary" data-open="create-app">＋ Create Application</button>
+  </div>
+</header>
 
-<section class="metric-grid">
-  <article class="metric-card"><div class="metric-icon purple">▣</div><div class="metric-copy"><small>Total applications</small><strong>{{ stats.apps }}</strong><span class="positive">↑ {{ stats.enabled_apps }} enabled</span></div><svg viewBox="0 0 120 48" class="sparkline"><path d="M2 42 L15 36 L26 38 L38 25 L50 31 L61 18 L72 23 L84 11 L96 19 L118 4"/></svg></article>
-  <article class="metric-card"><div class="metric-icon violet">◇</div><div class="metric-copy"><small>Total licenses</small><strong>{{ stats.licenses }}</strong><span class="positive">↑ {{ stats.active_licenses }} active</span></div><svg viewBox="0 0 120 48" class="sparkline"><path d="M2 39 L13 41 L25 32 L37 34 L48 24 L61 28 L72 17 L84 21 L96 9 L118 13"/></svg></article>
-  <article class="metric-card"><div class="metric-icon blue">♙</div><div class="metric-copy"><small>Registered users</small><strong>{{ stats.users }}</strong><span class="positive">Across all applications</span></div><svg viewBox="0 0 120 48" class="sparkline"><path d="M2 42 L16 37 L27 39 L39 30 L52 33 L64 21 L77 26 L88 15 L100 19 L118 7"/></svg></article>
-  <article class="metric-card"><div class="metric-icon green">●</div><div class="metric-copy"><small>Online now</small><strong>{{ stats.online }}</strong><span class="positive">Last 5 minutes</span></div><svg viewBox="0 0 120 48" class="sparkline"><path d="M2 40 L14 35 L27 37 L39 27 L51 30 L64 16 L76 20 L89 13 L101 17 L118 5"/></svg></article>
+<section class="command-strip"><div><span class="command-dot"></span><strong>System operational</strong><small>All services are responding normally</small></div><div class="command-meta"><span>{{ stats.online }} online</span><span>{{ stats.active_licenses }} active licenses</span></div></section>
+<section class="quick-actions">
+  <a href="/dashboard/licenses" class="quick-action primary-action"><span>⌘</span><div><strong>Licenses</strong><small>Generate and manage keys</small></div><b>→</b></a>
+  <a href="/dashboard/applications" class="quick-action"><span>▦</span><div><strong>Applications</strong><small>Configure your software</small></div><b>→</b></a>
+  <a href="/dashboard/logs" class="quick-action"><span>≡</span><div><strong>Activity</strong><small>Review real audit events</small></div><b>→</b></a>
 </section>
 
-<section class="dashboard-main-grid">
-  <article class="surface chart-surface">
-    <div class="surface-head"><div><h2>Authentication overview</h2><p>Successful client checks over the last week.</p></div><select><option>7 Days</option></select></div>
-    <div class="line-chart" data-values='{{ chart_values|tojson }}'>
-      <div class="chart-grid-lines"><i></i><i></i><i></i><i></i></div>
-      <svg viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".34"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>
-        <path class="chart-fill" d="M0 220 C80 170 130 70 210 130 S360 235 445 145 S610 55 690 135 S845 185 1000 55 L1000 260 L0 260 Z"/>
-        <path class="chart-line" d="M0 220 C80 170 130 70 210 130 S360 235 445 145 S610 55 690 135 S845 185 1000 55"/>
-        <g class="chart-points"><circle cx="0" cy="220" r="5"/><circle cx="210" cy="130" r="5"/><circle cx="445" cy="145" r="5"/><circle cx="690" cy="135" r="5"/><circle cx="1000" cy="55" r="5"/></g>
-      </svg>
-      {% if chart_total==0 %}<div class="chart-overlay-empty"><span>⌁</span><strong>No authentication activity yet</strong><small>Real authentication events will appear here automatically.</small></div>{% endif %}
-      <div class="chart-axis">{% for item in chart %}<span><b>{{ item.count }}</b>{{ item.label }}</span>{% endfor %}</div>
+<section class="stats-grid premium-stats">
+  <article class="stat-card accent-blue"><div class="stat-top"><span class="stat-icon blue">▦</span><small>TOTAL APPLICATIONS</small><span class="trend">↗</span></div><strong>{{ stats.apps }}</strong><em>{{ stats.enabled_apps }} enabled</em><div class="mini-meter"><i style="width:{% if stats.apps %}{{ (stats.enabled_apps / stats.apps * 100)|round|int }}{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-purple"><div class="stat-top"><span class="stat-icon purple">⌘</span><small>ACTIVE LICENSES</small><span class="trend">↗</span></div><strong>{{ stats.active_licenses }}</strong><em>{{ stats.licenses }} total generated</em><div class="mini-meter"><i style="width:{% if stats.licenses %}{{ (stats.active_licenses / stats.licenses * 100)|round|int }}{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-amber"><div class="stat-top"><span class="stat-icon amber">♙</span><small>REGISTERED USERS</small><span class="trend">↗</span></div><strong>{{ stats.users }}</strong><em>Across all applications</em><div class="mini-meter"><i style="width:{% if stats.users %}68{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-green"><div class="stat-top"><span class="stat-icon green">●</span><small>ONLINE NOW</small><span class="trend live-pulse">●</span></div><strong>{{ stats.online }}</strong><em class="{% if stats.online %}live{% endif %}">{% if stats.online %}Active in the last 5 minutes{% else %}No active sessions{% endif %}</em><div class="mini-meter"><i style="width:{% if stats.online %}72{% else %}0{% endif %}%"></i></div></article>
+</section>
+
+<section class="content-grid premium-grid">
+  <article class="panel chart-panel">
+    <div class="panel-head"><div><span class="panel-kicker">ANALYTICS</span><h2>Authentication activity</h2></div><span class="date-chip">Last 7 days</span></div>
+    <div class="real-chart" data-values='{{ chart_values|tojson }}'>
+      <div class="chart-bars">{% for item in chart %}<div class="bar-wrap"><div class="bar" style="height:{{ item.height }}%"><b>{{ item.count }}</b></div><span>{{ item.label }}</span></div>{% endfor %}</div>
+      {% if chart_total==0 %}<div class="chart-empty"><span>⌁</span><strong>No authentication activity</strong><small>Successful client authentication attempts will appear here.</small></div>{% endif %}
     </div>
   </article>
-
-  <article class="surface activity-surface">
-    <div class="surface-head"><div><h2>Recent activity</h2><p>Live platform events.</p></div><a class="ghost-link" href="/dashboard/logs">View all</a></div>
-    <div class="activity-feed">
-      {% for log in logs %}<div class="activity-item"><span class="activity-icon">{% if 'license' in log.event %}◇{% elif 'user' in log.event %}♙{% else %}▣{% endif %}</span><div><strong>{{ log.event|replace('.',' ')|title }}</strong><small>{{ log.detail or 'No additional details' }}</small></div><time>{{ log.created_at.strftime('%H:%M') }}</time></div>{% else %}<div class="empty-block"><span>≡</span><strong>No recent activity</strong><small>Events will appear as your platform is used.</small></div>{% endfor %}
-    </div>
+  <article class="panel activity-panel">
+    <div class="panel-head"><div><span class="panel-kicker">AUDIT</span><h2>Recent activity</h2></div><a href="/dashboard/logs">View all →</a></div>
+    <div class="activity-list">{% for log in logs %}<div><span class="activity-dot">•</span><p><strong>{{ log.event }}</strong><small>{{ log.detail or 'No additional details' }}</small></p><time>{{ log.created_at.strftime('%m/%d %H:%M') }}</time></div>{% else %}<div class="empty-state polished-empty"><span>≡</span><strong>No activity yet</strong><small>Real platform events will show here.</small></div>{% endfor %}</div>
   </article>
 </section>
 
-<section class="dashboard-lower-grid">
-  <article class="surface compact-surface">
-    <div class="surface-head"><div><h2>Top applications</h2><p>Applications by active licenses.</p></div><a class="ghost-link" href="/dashboard/applications">View all</a></div>
-    <div class="rank-list">{% for app in apps[:5] %}<a href="/dashboard/apps/{{ app.id }}"><span class="app-badge">{{ app.name[0]|upper }}</span><div><strong>{{ app.name }}</strong><small>v{{ app.version }}</small></div><b>{{ app.licenses|length }}</b><span>Manage ›</span></a>{% else %}<div class="empty-block small"><span>▣</span><strong>No applications yet</strong><small>Create your first application.</small></div>{% endfor %}</div>
-  </article>
-
-  <article class="surface compact-surface">
-    <div class="surface-head"><div><h2>Quick actions</h2><p>Common platform tasks.</p></div></div>
-    <div class="quick-list"><button data-open="create-app"><span>＋</span><div><strong>Add application</strong><small>Register a new product</small></div><b>›</b></button><a href="/dashboard/licenses"><span>◇</span><div><strong>Generate license</strong><small>Create a new key</small></div><b>›</b></a><a href="/dashboard/hwid-resets"><span>↻</span><div><strong>HWID resets</strong><small>Review reset requests</small></div><b>›</b></a><a href="/dashboard/analytics"><span>◴</span><div><strong>View analytics</strong><small>Detailed platform insights</small></div><b>›</b></a></div>
-  </article>
-
-  <article class="surface compact-surface status-surface">
-    <div class="surface-head"><div><h2>System status</h2><p>Current service health.</p></div></div>
-    <div class="service-list"><div><span><i></i>API</span><b>Operational</b></div><div><span><i></i>Database</span><b>Operational</b></div><div><span><i></i>License server</span><b>Operational</b></div><div><span><i></i>HWID service</span><b>Operational</b></div><div><span><i></i>Webhooks</span><b>Operational</b></div></div>
-  </article>
+<section class="panel apps-panel">
+  <div class="panel-head"><div><span class="panel-kicker">SOFTWARE</span><h2>Your applications</h2><p>Issue licenses and manage authentication for each product.</p></div><button class="primary" data-open="create-app">＋ New Application</button></div>
+  <div class="app-grid">{% for app in apps %}<a class="app-card" href="/dashboard/apps/{{ app.id }}"><div class="app-card-top"><span class="app-icon">V</span><span class="status-pill {% if not app.enabled %}off{% endif %}"><i></i>{{ 'Active' if app.enabled else 'Disabled' }}</span></div><h3>{{ app.name }}</h3><code>{{ app.public_id }}</code><div class="app-meta"><span>{{ app.licenses|length }} licenses</span><span>Manage →</span></div></a>{% else %}<div class="empty-state large polished-empty"><span>▦</span><strong>No applications yet</strong><small>Create your first application to begin generating licenses.</small><button class="primary" data-open="create-app">Create Application</button></div>{% endfor %}</div>
 </section>
 
-<section class="surface applications-surface">
-  <div class="surface-head"><div><h2>Applications</h2><p>Manage your connected software products.</p></div><button class="primary" data-open="create-app">＋ New application</button></div>
-  <div class="toolbar"><div class="table-search"><span>⌕</span><input placeholder="Search applications..." data-table-search></div><select><option>All status</option><option>Active</option><option>Disabled</option></select></div>
-  {% if apps %}<div class="table-wrap"><table><thead><tr><th>Application</th><th>Version</th><th>Licenses</th><th>Status</th><th></th></tr></thead><tbody>{% for app in apps %}<tr><td><a class="product-cell" href="/dashboard/apps/{{ app.id }}"><span class="app-badge">{{ app.name[0]|upper }}</span><div><strong>{{ app.name }}</strong><small>{{ app.public_id }}</small></div></a></td><td>v{{ app.version }}</td><td>{{ app.licenses|length }}</td><td><span class="status-chip {% if not app.enabled %}muted{% endif %}"><i></i>{{ 'Active' if app.enabled else 'Disabled' }}</span></td><td><a class="table-action" href="/dashboard/apps/{{ app.id }}">•••</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-block large"><span>▣</span><strong>No applications yet</strong><small>Create your first application to start issuing licenses.</small><button class="primary" data-open="create-app">Create application</button></div>{% endif %}
-</section>
-
-<dialog id="create-app" class="modal"><form method="post" action="/dashboard/apps"><div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">▣</span><div><h2>Create application</h2><p>Add a new product to your Vivet workspace.</p></div></div><button type="button" class="modal-close" data-close>×</button></div><div class="modal-body"><label class="modal-field"><span>Application name</span><input name="name" required placeholder="e.g. Vivet Client"></label><label class="modal-field"><span>Version</span><input name="version" value="1.0.0" required></label></div><div class="modal-actions"><button type="button" class="secondary-btn" data-close>Cancel</button><button class="primary modal-submit"><span>Create application</span></button></div></form></dialog>
+<dialog id="create-app" class="modal"><form method="post" action="/dashboard/apps">
+  <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">▦</span><div><h2>Create application</h2><p>Add a new software application to your Vivet workspace.</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+  <div class="modal-body">
+    <label class="modal-field"><span>Name</span><input name="name" required placeholder="Enter application name" autocomplete="off"></label>
+    <label class="modal-field"><span>Version</span><input name="version" value="1.0.0" required placeholder="1.0.0"></label>
+  </div>
+  <div class="modal-actions"><button type="button" class="secondary-btn" data-close>Cancel</button><button class="primary modal-submit"><span>Create</span></button></div>
+</form></dialog>
 {% endblock %}

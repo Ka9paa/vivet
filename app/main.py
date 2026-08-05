@@ -33,12 +33,9 @@ def migrate_legacy_schema():
 
 migrate_legacy_schema()
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / 'static'
-TEMPLATE_DIR = BASE_DIR / 'templates'
-
-app = FastAPI(title=settings.app_name, version='0.3.0')
-app.mount('/static', StaticFiles(directory=str(STATIC_DIR), check_dir=True), name='static')
-templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+app=FastAPI(title=settings.app_name,version='0.5.0')
+app.mount('/static', StaticFiles(directory=str(BASE_DIR / 'static')), name='static')
+templates=Jinja2Templates(directory=str(BASE_DIR / 'templates'))
 NAV=[('/dashboard','Dashboard'),('/dashboard/applications','Applications'),('/dashboard/licenses','Licenses'),('/dashboard/users','Users'),('/dashboard/resellers','Resellers'),('/dashboard/hwid-resets','HWID Resets'),('/dashboard/bans','Bans'),('/dashboard/analytics','Analytics'),('/dashboard/logs','Logs'),('/dashboard/settings','Settings'),('/dashboard/api-keys','API Keys'),('/dashboard/webhooks','Webhooks'),('/dashboard/discord','Discord Access')]
 
 def now_utc(): return datetime.now(timezone.utc)
@@ -62,8 +59,8 @@ async def no_cache(request,call_next):
     return response
 
 class Principal:
-    def __init__(self, id: str, username: str, role: str = "owner", discord_id: str | None = None):
-        self.id, self.username, self.role, self.discord_id = id, username, role, discord_id
+    def __init__(self, id: str, username: str, role: str = "owner", discord_id: str | None = None, avatar_url: str | None = None):
+        self.id, self.username, self.role, self.discord_id, self.avatar_url = id, username, role, discord_id, avatar_url
 
 def current_owner(owner_token:str|None=Cookie(default=None),db:Session=Depends(get_db)):
     payload=decode_panel_token(owner_token or '')
@@ -73,7 +70,7 @@ def current_owner(owner_token:str|None=Cookie(default=None),db:Session=Depends(g
         if owner: return Principal(owner.id, owner.username, "owner")
     if payload.get("kind") == "discord":
         member=db.get(PanelMember,payload.get("sub"))
-        if member and member.enabled: return Principal(member.owner_id, member.discord_username, member.role, member.discord_id)
+        if member and member.enabled: return Principal(member.owner_id, member.discord_username, member.role, member.discord_id, payload.get("avatar_url"))
     raise HTTPException(401,'Login required')
 
 def ctx(request,owner,active,**kwargs): return {'request':request,'owner':owner,'active':active,'nav':NAV,**kwargs}
@@ -84,37 +81,139 @@ def health(): return {'ok':True,'service':'Vivet'}
 @app.get('/')
 def home(): return RedirectResponse('/login')
 @app.get('/login',response_class=HTMLResponse)
-def login_page(request:Request): return templates.TemplateResponse('login.html',{'request':request,'error':None})
+def login_page(request:Request):
+    return templates.TemplateResponse('login.html', {'request':request, 'error':None})
+
 @app.post('/login')
-def login(request:Request,username:str=Form(...),password:str=Form(...),db:Session=Depends(get_db)):
-    owner=db.scalar(select(Owner).where(Owner.username==username.strip().lower()))
-    if not owner or not verify_password(password,owner.password_hash): return templates.TemplateResponse('login.html',{'request':request,'error':'Invalid username or password.'},status_code=401)
-    response=RedirectResponse('/dashboard',303); response.set_cookie('owner_token',create_owner_token(owner.id),httponly=True,secure=settings.cookie_secure,samesite='lax',max_age=settings.jwt_expire_minutes*60); return response
+def password_login_disabled():
+    # Vivet uses Discord OAuth only. Password login is intentionally disabled.
+    return RedirectResponse('/login?discord=required', 303)
 
 @app.get('/login/discord')
 def discord_login():
-    if not settings.discord_application_id or not settings.discord_client_secret:
-        return RedirectResponse('/login?discord=disabled',303)
-    params={
-        'client_id':settings.discord_application_id,
-        'redirect_uri':settings.base_url.rstrip('/')+'/auth/discord/callback',
-        'response_type':'code','scope':'identify'
+    if not all((
+        settings.discord_application_id,
+        settings.discord_client_secret,
+        settings.discord_guild_id,
+        settings.discord_owner_role_id or settings.discord_auth_role_id,
+    )):
+        return RedirectResponse('/login?discord=disabled', 303)
+
+    state = secrets.token_urlsafe(32)
+    params = {
+        'client_id': settings.discord_application_id,
+        'redirect_uri': settings.effective_discord_redirect_uri,
+        'response_type': 'code',
+        'scope': 'identify guilds.members.read',
+        'state': state,
+        'prompt': 'consent',
     }
-    return RedirectResponse('https://discord.com/oauth2/authorize?'+urllib.parse.urlencode(params))
+    response = RedirectResponse('https://discord.com/oauth2/authorize?' + urllib.parse.urlencode(params))
+    response.set_cookie(
+        'discord_oauth_state', state, httponly=True, secure=settings.cookie_secure,
+        samesite='lax', max_age=600,
+    )
+    return response
 
 @app.get('/auth/discord/callback')
-async def discord_callback(code:str,db:Session=Depends(get_db)):
-    redirect_uri=settings.base_url.rstrip('/')+'/auth/discord/callback'
-    async with httpx.AsyncClient(timeout=15) as client:
-        token=await client.post('https://discord.com/api/oauth2/token',data={'client_id':settings.discord_application_id,'client_secret':settings.discord_client_secret,'grant_type':'authorization_code','code':code,'redirect_uri':redirect_uri},headers={'Content-Type':'application/x-www-form-urlencoded'})
-        if token.status_code!=200: return RedirectResponse('/login?discord=failed',303)
-        access=token.json().get('access_token')
-        user=await client.get('https://discord.com/api/users/@me',headers={'Authorization':f'Bearer {access}'})
-        if user.status_code!=200: return RedirectResponse('/login?discord=failed',303)
-    data=user.json(); member=db.scalar(select(PanelMember).where(PanelMember.discord_id==str(data['id']),PanelMember.enabled==True))
-    if not member: return RedirectResponse('/login?discord=unauthorized',303)
-    member.discord_username=data.get('global_name') or data.get('username') or member.discord_username; db.commit()
-    response=RedirectResponse('/dashboard',303); response.set_cookie('owner_token',create_panel_token(member.id,'discord'),httponly=True,secure=settings.cookie_secure,samesite='lax',max_age=settings.jwt_expire_minutes*60); return response
+async def discord_callback(
+    request: Request,
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    db: Session = Depends(get_db),
+):
+    expected_state = request.cookies.get('discord_oauth_state')
+    if error or not code or not state or not expected_state or not secrets.compare_digest(state, expected_state):
+        response = RedirectResponse('/login?discord=failed', 303)
+        response.delete_cookie('discord_oauth_state')
+        return response
+
+    redirect_uri = settings.effective_discord_redirect_uri
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            token_response = await client.post(
+                'https://discord.com/api/oauth2/token',
+                data={
+                    'client_id': settings.discord_application_id,
+                    'client_secret': settings.discord_client_secret,
+                    'grant_type': 'authorization_code',
+                    'code': code,
+                    'redirect_uri': redirect_uri,
+                },
+                headers={'Content-Type':'application/x-www-form-urlencoded'},
+            )
+            token_response.raise_for_status()
+            access_token = token_response.json().get('access_token')
+            headers = {'Authorization': f'Bearer {access_token}'}
+            user_response = await client.get('https://discord.com/api/users/@me', headers=headers)
+            member_response = await client.get(
+                f'https://discord.com/api/users/@me/guilds/{settings.discord_guild_id}/member',
+                headers=headers,
+            )
+            user_response.raise_for_status()
+            member_response.raise_for_status()
+    except (httpx.HTTPError, KeyError, TypeError):
+        response = RedirectResponse('/login?discord=failed', 303)
+        response.delete_cookie('discord_oauth_state')
+        return response
+
+    user_data = user_response.json()
+    member_data = member_response.json()
+    role_ids = {str(role_id) for role_id in member_data.get('roles', [])}
+
+    if settings.discord_owner_role_id and settings.discord_owner_role_id in role_ids:
+        panel_role = 'owner'
+    elif settings.discord_auth_role_id and settings.discord_auth_role_id in role_ids:
+        panel_role = 'auth_access'
+    else:
+        response = RedirectResponse('/login?discord=unauthorized', 303)
+        response.delete_cookie('discord_oauth_state')
+        return response
+
+    owner = db.scalar(select(Owner).where(Owner.username == settings.owner_username.strip().lower()))
+    if not owner:
+        owner = Owner(
+            username=settings.owner_username.strip().lower(),
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+        )
+        db.add(owner)
+        db.flush()
+
+    discord_id = str(user_data['id'])
+    display_name = user_data.get('global_name') or user_data.get('username') or discord_id
+    member = db.scalar(select(PanelMember).where(PanelMember.discord_id == discord_id))
+    if not member:
+        member = PanelMember(
+            owner_id=owner.id, discord_id=discord_id, discord_username=display_name,
+            role=panel_role, enabled=True,
+        )
+        db.add(member)
+    else:
+        member.owner_id = owner.id
+        member.discord_username = display_name
+        member.role = panel_role
+        member.enabled = True
+
+    avatar_hash = user_data.get('avatar')
+    avatar_url = (
+        f"https://cdn.discordapp.com/avatars/{discord_id}/{avatar_hash}.png?size=128"
+        if avatar_hash else
+        f"https://cdn.discordapp.com/embed/avatars/{(int(discord_id) >> 22) % 6}.png"
+    )
+    log(db, owner.id, 'discord.login', f'{display_name} logged in as {panel_role}', ip=request.client.host if request.client else None)
+    db.commit()
+    db.refresh(member)
+
+    response = RedirectResponse('/dashboard', 303)
+    response.delete_cookie('discord_oauth_state')
+    response.set_cookie(
+        'owner_token',
+        create_panel_token(member.id, 'discord', {'avatar_url': avatar_url}),
+        httponly=True, secure=settings.cookie_secure, samesite='lax',
+        max_age=settings.jwt_expire_minutes * 60,
+    )
+    return response
 
 @app.post('/logout')
 def logout():
@@ -296,7 +395,7 @@ def delete_webhook(wid:str,owner:Owner=Depends(current_owner),db:Session=Depends
 @app.get('/dashboard/discord',response_class=HTMLResponse)
 def discord_access_page(request:Request,owner=Depends(current_owner),db:Session=Depends(get_db)):
     rows=db.scalars(select(PanelMember).where(PanelMember.owner_id==owner.id).order_by(PanelMember.enabled.desc(),PanelMember.created_at.desc())).all()
-    configured=bool(settings.discord_application_id and settings.discord_client_secret and settings.discord_bot_token)
+    configured=bool(settings.discord_application_id and settings.discord_client_secret and settings.discord_guild_id)
     return templates.TemplateResponse('discord_access.html',ctx(request,owner,'Discord Access',rows=rows,configured=configured,guild_id=settings.discord_guild_id))
 
 @app.post('/dashboard/discord/{member_id}/toggle')

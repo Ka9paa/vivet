@@ -1,78 +1,47 @@
 {% extends 'base.html' %}{% block body_class %}dashboard-page{% endblock %}{% block body %}
-<div class="app-shell">
+<div class="dashboard-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="brand-row">
-      <a href="/dashboard" class="brand"><img src="/static/vivet-logo.png" alt="Vivet"><span>VIVET</span></a>
-      <button class="sidebar-collapse" id="sidebar-collapse" type="button" aria-label="Collapse sidebar">‹</button>
+    <div class="sidebar-top">
+      <a href="/dashboard" class="sidebar-brand"><span class="logo-wrap"><img src="/static/vivet-logo.png" alt="Vivet"></span><span>VIVET</span></a>
+      <span class="owner-badge"><i></i> {{ owner.role|replace("_", " ")|title }} <b>ACCESS</b></span>
     </div>
 
-    <button class="workspace-card" type="button" id="profile-toggle">
-      {% if owner.avatar_url %}<img src="{{ owner.avatar_url }}" alt="{{ owner.username }}" class="workspace-avatar">{% else %}<span class="workspace-avatar fallback">{{ owner.username[0]|upper }}</span>{% endif %}
-      <span class="workspace-copy"><strong>{{ owner.username }}</strong><small>{{ owner.role|replace('_',' ')|title }} workspace</small></span>
-      <span class="workspace-chevron">⌄</span>
-    </button>
-
-    <div class="sidebar-search"><span>⌕</span><input id="nav-search" placeholder="Search navigation" autocomplete="off"><kbd>⌘K</kbd></div>
-
-    <nav class="sidebar-nav">
-      <span class="nav-label">MAIN</span>
+    <div class="nav-search"><span>⌕</span><input id="nav-search" placeholder="Search panel" autocomplete="off"></div><nav class="side-nav">
+      <p class="nav-section">CORE</p>
       {% for href,label in nav %}
-        {% if label == 'Analytics' %}<span class="nav-label section-gap">INSIGHTS</span>{% endif %}
-        {% if label == 'Settings' %}<span class="nav-label section-gap">SYSTEM</span>{% endif %}
-        <a href="{{ href }}" class="nav-link {% if active==label %}active{% endif %}" data-nav-label="{{ label|lower }}">
-          <span class="nav-glyph">
-            {% if label == 'Dashboard' %}⌂{% elif label == 'Applications' %}▣{% elif label == 'Licenses' %}◇{% elif label == 'Users' %}♙{% elif label == 'Resellers' %}♧{% elif label == 'HWID Resets' %}↻{% elif label == 'Bans' %}△{% elif label == 'Analytics' %}◴{% elif label == 'Logs' %}≡{% elif label == 'Settings' %}⚙{% elif label == 'API Keys' %}⌁{% elif label == 'Webhooks' %}⌘{% elif label == 'Discord Access' %}◈{% else %}•{% endif %}
+        {% if label == 'Users' %}<p class="nav-section nav-break">MANAGEMENT</p>{% endif %}
+        {% if label == 'Bans' %}<p class="nav-section nav-break">SECURITY</p>{% endif %}
+        <a class="{% if active==label %}active{% endif %}" href="{{ href }}">
+          <span class="nav-icon" aria-hidden="true">
+            {% if label == 'Dashboard' %}⌂{% elif label == 'Applications' %}▦{% elif label == 'Licenses' %}⌘{% elif label == 'Users' %}♙{% elif label == 'Resellers' %}♧{% elif label == 'HWID Resets' %}↻{% elif label == 'Bans' %}◇{% elif label == 'Analytics' %}⌁{% elif label == 'Logs' %}≡{% elif label == 'Settings' %}⚙{% elif label == 'API Keys' %}⌁{% elif label == 'Webhooks' %}⌬{% else %}•{% endif %}
           </span>
           <span>{{ label }}</span>
-          {% if active==label %}<i></i>{% endif %}
         </a>
       {% endfor %}
     </nav>
 
-    <div class="sidebar-bottom">
-      <div class="health-card"><span class="health-orb"></span><span><strong>All systems operational</strong><small>Vivet services are healthy</small></span><b>›</b></div>
-      <form method="post" action="/logout"><button class="logout-button" type="submit"><span>↪</span><span>Log out</span></button></form>
-      <small class="sidebar-version">© 2026 Vivet · v2.0</small>
+    <div class="sidebar-promo"><span>VIVET CLOUD</span><strong>Secure licensing, simplified.</strong><small>Protected sessions and signed responses.</small></div><div class="sidebar-footer">
+      <div class="system-state"><span><i></i> SYSTEM</span><strong>Operational</strong></div>
+      <div class="profile compact-profile"><div class="avatar">{{ owner.username[0]|upper }}</div><div><small>Signed in as</small><strong>{{ owner.username }}</strong><span>{{ owner.role|replace("_", " ")|title }}</span></div></div>
+      <form method="post" action="/logout"><button class="logout-btn" type="submit">Log out <span>↗</span></button></form>
     </div>
   </aside>
 
-  <main class="main-area">
-    <header class="topbar">
-      <button class="mobile-menu" id="menu-toggle" type="button" aria-label="Open navigation">☰</button>
-      <button class="command-trigger" id="command-trigger" type="button"><span>⌕</span><span>Search anything...</span><kbd>⌘ K</kbd></button>
-      <div class="topbar-actions">
-        <button class="top-icon theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
-        <button class="top-icon" type="button" aria-label="Notifications">♧<i>3</i></button>
-        <button class="top-icon" type="button" aria-label="Settings" onclick="location.href='/dashboard/settings'">⚙</button>
-        <button class="new-button" type="button" id="new-menu-toggle"><span>＋</span> New</button>
-      </div>
-      <div class="new-menu" id="new-menu">
-        <button data-open="create-app"><span>▣</span><div><strong>Application</strong><small>Create a software product</small></div></button>
-        <a href="/dashboard/licenses"><span>◇</span><div><strong>License</strong><small>Generate a new key</small></div></a>
-        <a href="/dashboard/users"><span>♙</span><div><strong>User</strong><small>Add an application user</small></div></a>
-      </div>
-    </header>
-
-    <section class="page-stage">
-      {% block content %}{% endblock %}
-    </section>
+  <main class="dashboard-main">
+    <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+    <div class="desktop-topbar"><div class="breadcrumb"><span>Vivet</span><b>/</b><strong>{{ active or 'Overview' }}</strong></div><div class="topbar-actions"><span class="live-chip"><i></i> Live</span><button class="icon-btn" aria-label="Notifications">◇</button><div class="mini-avatar">{{ owner.username[0]|upper }}</div></div></div>
+    <div class="mobile-topbar"><button id="menu-toggle" aria-label="Open menu">☰</button><a href="/dashboard"><img src="/static/vivet-logo.png" alt="Vivet"> VIVET</a></div>
+    {% block content %}{% endblock %}
   </main>
 </div>
+<div class="toast" id="toast" role="status"></div>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
-<div class="toast-stack" id="toast-stack"></div>
-
-<dialog class="command-dialog" id="command-dialog">
-  <div class="command-input-wrap"><span>⌕</span><input id="command-input" placeholder="Search pages and actions..." autocomplete="off"><kbd>ESC</kbd></div>
-  <div class="command-results" id="command-results">
-    {% for href,label in nav %}<a href="{{ href }}" data-command="{{ label|lower }}"><span class="command-result-icon">{% if label == 'Dashboard' %}⌂{% elif label == 'Applications' %}▣{% elif label == 'Licenses' %}◇{% elif label == 'Users' %}♙{% elif label == 'Settings' %}⚙{% else %}•{% endif %}</span><span><strong>{{ label }}</strong><small>Open {{ label|lower }}</small></span><kbd>↵</kbd></a>{% endfor %}
-  </div>
-</dialog>
-
-<dialog id="confirm-action" class="modal danger-modal">
+<dialog id="confirm-action" class="modal modal-danger confirm-modal">
   <form method="dialog">
-    <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon danger">!</span><div><h2>Confirm action</h2><p id="confirm-message">Are you sure you want to continue?</p></div></div><button type="button" class="modal-close" data-close>×</button></div>
-    <div class="danger-callout"><strong>This action may be permanent.</strong><span>Review the details before confirming.</span></div>
+    <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">!</span><div><h2 id="confirm-title">Confirm action</h2><p id="confirm-message">Are you sure you want to continue?</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+    <div class="modal-warning"><strong>This action may not be reversible.</strong><span>Review the action before confirming.</span></div>
     <div class="modal-actions"><button value="cancel" class="secondary-btn">Cancel</button><button value="confirm" class="danger-btn" id="confirm-submit">Confirm</button></div>
   </form>
 </dialog>
+
 {% endblock %}
