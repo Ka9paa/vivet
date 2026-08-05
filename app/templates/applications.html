@@ -1,0 +1,8 @@
+{% extends 'list_page.html' %}{% block rows %}{% for app in rows %}<tr><td><a class="table-link" href="/dashboard/apps/{{ app.id }}">{{ app.name }}</a></td><td><code>{{ app.public_id }}</code></td><td>{{ app.version }}</td><td>{{ app.licenses|length }}</td><td><span class="status-pill {% if not app.enabled %}off{% endif %}">{{ 'Enabled' if app.enabled else 'Disabled' }}</span></td><td><form method="post" action="/dashboard/apps/{{ app.id }}/toggle"><button class="mini-btn">{{ 'Disable' if app.enabled else 'Enable' }}</button></form></td></tr>{% endfor %}{% endblock %}{% block modal %}<dialog id="create-app" class="modal"><form method="post" action="/dashboard/apps">
+  <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">▦</span><div><h2>Create application</h2><p>Add a new software application to your Vivet workspace.</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+  <div class="modal-body">
+    <label class="modal-field"><span>Name</span><input name="name" required placeholder="Enter application name" autocomplete="off"></label>
+    <label class="modal-field"><span>Version</span><input name="version" value="1.0.0" required placeholder="1.0.0"></label>
+  </div>
+  <div class="modal-actions"><button type="button" class="secondary-btn" data-close>Cancel</button><button class="primary modal-submit"><span>Create</span></button></div>
+</form></dialog>{% endblock %}

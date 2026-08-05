@@ -1,0 +1,55 @@
+{% extends 'shell.html' %}{% block content %}
+<header class="dash-header hero-header">
+  <div>
+    <div class="eyebrow"><span></span> VIVET CONTROL CENTER</div>
+    <h1>Welcome back, <span>{{ owner.username }}</span></h1>
+    <p>Everything you need to license, protect, and scale your software from one place.</p>
+  </div>
+  <div class="header-actions">
+    <a class="secondary-btn" href="/docs">API Documentation</a>
+    <button class="primary" data-open="create-app">＋ Create Application</button>
+  </div>
+</header>
+
+<section class="command-strip"><div><span class="command-dot"></span><strong>System operational</strong><small>All services are responding normally</small></div><div class="command-meta"><span>{{ stats.online }} online</span><span>{{ stats.active_licenses }} active licenses</span></div></section>
+<section class="quick-actions">
+  <a href="/dashboard/licenses" class="quick-action primary-action"><span>⌘</span><div><strong>Licenses</strong><small>Generate and manage keys</small></div><b>→</b></a>
+  <a href="/dashboard/applications" class="quick-action"><span>▦</span><div><strong>Applications</strong><small>Configure your software</small></div><b>→</b></a>
+  <a href="/dashboard/logs" class="quick-action"><span>≡</span><div><strong>Activity</strong><small>Review real audit events</small></div><b>→</b></a>
+</section>
+
+<section class="stats-grid premium-stats">
+  <article class="stat-card accent-blue"><div class="stat-top"><span class="stat-icon blue">▦</span><small>TOTAL APPLICATIONS</small><span class="trend">↗</span></div><strong>{{ stats.apps }}</strong><em>{{ stats.enabled_apps }} enabled</em><div class="mini-meter"><i style="width:{% if stats.apps %}{{ (stats.enabled_apps / stats.apps * 100)|round|int }}{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-purple"><div class="stat-top"><span class="stat-icon purple">⌘</span><small>ACTIVE LICENSES</small><span class="trend">↗</span></div><strong>{{ stats.active_licenses }}</strong><em>{{ stats.licenses }} total generated</em><div class="mini-meter"><i style="width:{% if stats.licenses %}{{ (stats.active_licenses / stats.licenses * 100)|round|int }}{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-amber"><div class="stat-top"><span class="stat-icon amber">♙</span><small>REGISTERED USERS</small><span class="trend">↗</span></div><strong>{{ stats.users }}</strong><em>Across all applications</em><div class="mini-meter"><i style="width:{% if stats.users %}68{% else %}0{% endif %}%"></i></div></article>
+  <article class="stat-card accent-green"><div class="stat-top"><span class="stat-icon green">●</span><small>ONLINE NOW</small><span class="trend live-pulse">●</span></div><strong>{{ stats.online }}</strong><em class="{% if stats.online %}live{% endif %}">{% if stats.online %}Active in the last 5 minutes{% else %}No active sessions{% endif %}</em><div class="mini-meter"><i style="width:{% if stats.online %}72{% else %}0{% endif %}%"></i></div></article>
+</section>
+
+<section class="content-grid premium-grid">
+  <article class="panel chart-panel">
+    <div class="panel-head"><div><span class="panel-kicker">ANALYTICS</span><h2>Authentication activity</h2></div><span class="date-chip">Last 7 days</span></div>
+    <div class="real-chart" data-values='{{ chart_values|tojson }}'>
+      <div class="chart-bars">{% for item in chart %}<div class="bar-wrap"><div class="bar" style="height:{{ item.height }}%"><b>{{ item.count }}</b></div><span>{{ item.label }}</span></div>{% endfor %}</div>
+      {% if chart_total==0 %}<div class="chart-empty"><span>⌁</span><strong>No authentication activity</strong><small>Successful client authentication attempts will appear here.</small></div>{% endif %}
+    </div>
+  </article>
+  <article class="panel activity-panel">
+    <div class="panel-head"><div><span class="panel-kicker">AUDIT</span><h2>Recent activity</h2></div><a href="/dashboard/logs">View all →</a></div>
+    <div class="activity-list">{% for log in logs %}<div><span class="activity-dot">•</span><p><strong>{{ log.event }}</strong><small>{{ log.detail or 'No additional details' }}</small></p><time>{{ log.created_at.strftime('%m/%d %H:%M') }}</time></div>{% else %}<div class="empty-state polished-empty"><span>≡</span><strong>No activity yet</strong><small>Real platform events will show here.</small></div>{% endfor %}</div>
+  </article>
+</section>
+
+<section class="panel apps-panel">
+  <div class="panel-head"><div><span class="panel-kicker">SOFTWARE</span><h2>Your applications</h2><p>Issue licenses and manage authentication for each product.</p></div><button class="primary" data-open="create-app">＋ New Application</button></div>
+  <div class="app-grid">{% for app in apps %}<a class="app-card" href="/dashboard/apps/{{ app.id }}"><div class="app-card-top"><span class="app-icon">V</span><span class="status-pill {% if not app.enabled %}off{% endif %}"><i></i>{{ 'Active' if app.enabled else 'Disabled' }}</span></div><h3>{{ app.name }}</h3><code>{{ app.public_id }}</code><div class="app-meta"><span>{{ app.licenses|length }} licenses</span><span>Manage →</span></div></a>{% else %}<div class="empty-state large polished-empty"><span>▦</span><strong>No applications yet</strong><small>Create your first application to begin generating licenses.</small><button class="primary" data-open="create-app">Create Application</button></div>{% endfor %}</div>
+</section>
+
+<dialog id="create-app" class="modal"><form method="post" action="/dashboard/apps">
+  <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">▦</span><div><h2>Create application</h2><p>Add a new software application to your Vivet workspace.</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+  <div class="modal-body">
+    <label class="modal-field"><span>Name</span><input name="name" required placeholder="Enter application name" autocomplete="off"></label>
+    <label class="modal-field"><span>Version</span><input name="version" value="1.0.0" required placeholder="1.0.0"></label>
+  </div>
+  <div class="modal-actions"><button type="button" class="secondary-btn" data-close>Cancel</button><button class="primary modal-submit"><span>Create</span></button></div>
+</form></dialog>
+{% endblock %}

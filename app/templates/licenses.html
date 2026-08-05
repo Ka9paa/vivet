@@ -1,0 +1,12 @@
+{% extends 'list_page.html' %}{% block rows %}{% for lic in rows %}<tr><td><code>{{ lic.key }}</code></td><td>{{ lic.application.name }}</td><td><span class="status-pill {% if lic.status!='Active' %}off{% endif %}">{{ lic.status }}</span></td><td>{{ lic.expires }}</td><td>{{ 'Bound' if lic.hwid else 'Unbound' }}</td><td><div class="row-actions"><form method="post" action="/dashboard/licenses/{{ lic.id }}/reset-hwid" data-confirm="Reset this license HWID?"><button class="mini-btn">Reset HWID</button></form><form method="post" action="/dashboard/licenses/{{ lic.id }}/toggle-ban" data-confirm="Change the ban status for this license?"><button class="mini-btn danger">{{ 'Unban' if lic.banned else 'Ban' }}</button></form><form method="post" action="/dashboard/licenses/{{ lic.id }}/delete" data-confirm="Delete this license?"><button class="mini-btn danger">Delete</button></form></div></td></tr>{% endfor %}{% endblock %}{% block modal %}<dialog id="create-license" class="modal"><form method="post" action="/dashboard/licenses">
+  <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">⌘</span><div><h2>Generate license</h2><p>Create one or more license keys for an application.</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+  <div class="modal-body">
+    <label class="modal-field"><span>Application</span><select name="application_id" required>{% for app in apps %}<option value="{{ app.id }}">{{ app.name }}</option>{% endfor %}</select></label>
+    <div class="modal-field-grid">
+      <label class="modal-field"><span>Duration days</span><input type="number" name="duration_days" value="30" min="0"></label>
+      <label class="modal-field"><span>Quantity</span><input type="number" name="quantity" value="1" min="1" max="100"></label>
+    </div>
+    <label class="modal-field"><span>Note <small>Optional</small></span><input name="note" placeholder="Internal note"></label>
+  </div>
+  <div class="modal-actions"><button type="button" class="secondary-btn" data-close>Cancel</button><button class="primary modal-submit"><span>Generate</span></button></div>
+</form></dialog>{% endblock %}

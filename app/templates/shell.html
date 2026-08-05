@@ -1,0 +1,47 @@
+{% extends 'base.html' %}{% block body_class %}dashboard-page{% endblock %}{% block body %}
+<div class="dashboard-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <a href="/dashboard" class="sidebar-brand"><span class="logo-wrap"><img src="/static/vivet-logo.png" alt="Vivet"></span><span>VIVET</span></a>
+      <span class="owner-badge"><i></i> {{ owner.role|replace("_", " ")|title }} <b>ACCESS</b></span>
+    </div>
+
+    <div class="nav-search"><span>⌕</span><input id="nav-search" placeholder="Search panel" autocomplete="off"></div><nav class="side-nav">
+      <p class="nav-section">CORE</p>
+      {% for href,label in nav %}
+        {% if label == 'Users' %}<p class="nav-section nav-break">MANAGEMENT</p>{% endif %}
+        {% if label == 'Bans' %}<p class="nav-section nav-break">SECURITY</p>{% endif %}
+        <a class="{% if active==label %}active{% endif %}" href="{{ href }}">
+          <span class="nav-icon" aria-hidden="true">
+            {% if label == 'Dashboard' %}⌂{% elif label == 'Applications' %}▦{% elif label == 'Licenses' %}⌘{% elif label == 'Users' %}♙{% elif label == 'Resellers' %}♧{% elif label == 'HWID Resets' %}↻{% elif label == 'Bans' %}◇{% elif label == 'Analytics' %}⌁{% elif label == 'Logs' %}≡{% elif label == 'Settings' %}⚙{% elif label == 'API Keys' %}⌁{% elif label == 'Webhooks' %}⌬{% else %}•{% endif %}
+          </span>
+          <span>{{ label }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+
+    <div class="sidebar-promo"><span>VIVET CLOUD</span><strong>Secure licensing, simplified.</strong><small>Protected sessions and signed responses.</small></div><div class="sidebar-footer">
+      <div class="system-state"><span><i></i> SYSTEM</span><strong>Operational</strong></div>
+      <div class="profile compact-profile"><div class="avatar">{{ owner.username[0]|upper }}</div><div><small>Signed in as</small><strong>{{ owner.username }}</strong><span>{{ owner.role|replace("_", " ")|title }}</span></div></div>
+      <form method="post" action="/logout"><button class="logout-btn" type="submit">Log out <span>↗</span></button></form>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+    <div class="desktop-topbar"><div class="breadcrumb"><span>Vivet</span><b>/</b><strong>{{ active or 'Overview' }}</strong></div><div class="topbar-actions"><span class="live-chip"><i></i> Live</span><button class="icon-btn" aria-label="Notifications">◇</button><div class="mini-avatar">{{ owner.username[0]|upper }}</div></div></div>
+    <div class="mobile-topbar"><button id="menu-toggle" aria-label="Open menu">☰</button><a href="/dashboard"><img src="/static/vivet-logo.png" alt="Vivet"> VIVET</a></div>
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<dialog id="confirm-action" class="modal modal-danger confirm-modal">
+  <form method="dialog">
+    <div class="modal-head"><div class="modal-title-wrap"><span class="modal-icon">!</span><div><h2 id="confirm-title">Confirm action</h2><p id="confirm-message">Are you sure you want to continue?</p></div></div><button type="button" class="modal-close" data-close aria-label="Close">×</button></div>
+    <div class="modal-warning"><strong>This action may not be reversible.</strong><span>Review the action before confirming.</span></div>
+    <div class="modal-actions"><button value="cancel" class="secondary-btn">Cancel</button><button value="confirm" class="danger-btn" id="confirm-submit">Confirm</button></div>
+  </form>
+</dialog>
+
+{% endblock %}

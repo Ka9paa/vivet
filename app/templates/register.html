@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body_class %}auth-page{% endblock %}
+{% block body %}
+<div class="auth-shell">
+  <section class="auth-brand">
+    <div class="brand-glow"></div>
+    <img src="/static/vivet-logo.png" class="auth-logo" alt="Vivet logo">
+    <h1>VIVET</h1><p>License. Protect. Grow.</p>
+  </section>
+  <section class="auth-card"><div class="auth-card-inner">
+    <h2>Create your account</h2><p class="muted">Start managing your applications with Vivet</p>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <form method="post" class="auth-form">
+      <label>Username<input name="username" type="text" placeholder="Choose a username" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" placeholder="At least 10 characters" minlength="10" required></label>
+      <button class="primary wide">Create Account</button>
+    </form>
+    <p class="signup">Already have an account? <a href="/login">Sign in</a></p>
+  </div></section>
+</div>
+<footer class="auth-footer">© 2026 Vivet. All rights reserved.</footer>
+{% endblock %}

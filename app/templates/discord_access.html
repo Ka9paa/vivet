@@ -1,0 +1,11 @@
+{% extends 'shell.html' %}{% block content %}
+<section class="content-wrap">
+<header class="page-header"><div><span class="page-kicker">INTEGRATIONS</span><h1>Discord Access</h1><p>Grant panel access with <code>/auth add</code> and let approved members sign in through Discord.</p></div><span class="status-pill {% if not configured %}off{% endif %}">{{ 'Connected' if configured else 'Setup required' }}</span></header>
+<section class="settings-grid">
+<article class="panel form-panel"><div class="panel-head"><h2>Bot commands</h2></div><div class="command-list"><code>/auth add @user admin</code><code>/auth remove @user</code><code>/auth permissions @user</code><code>/auth list</code></div><p class="muted">Start the bot in a second terminal with <code>python run_discord_bot.py</code>.</p></article>
+<article class="panel form-panel"><div class="panel-head"><h2>Permission levels</h2></div><div class="permission-grid"><span><b>Admin</b> Full management</span><span><b>Developer</b> Application access</span><span><b>Reseller</b> License sales</span><span><b>Support</b> Users and resets</span><span><b>Viewer</b> Read-only access</span></div></article>
+</section>
+<section class="panel table-panel"><div class="panel-head"><h2>Authorized members</h2><span>{{ rows|selectattr('enabled')|list|length }} active</span></div>
+{% if rows %}<div class="table-scroll"><table><thead><tr><th>Discord user</th><th>Discord ID</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.discord_username }}</strong></td><td><code>{{ row.discord_id }}</code></td><td><span class="role-chip">{{ row.role|replace('_', ' ')|title }}</span></td><td><span class="status-pill {% if not row.enabled %}off{% endif %}">{{ 'Active' if row.enabled else 'Revoked' }}</span></td><td><form method="post" action="/dashboard/discord/{{ row.id }}/toggle"><button class="mini-btn {% if row.enabled %}danger{% endif %}">{{ 'Revoke' if row.enabled else 'Restore' }}</button></form></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state large"><strong>No Discord members authorized</strong><span>Use <code>/auth add @user role</code> from your server.</span></div>{% endif %}</section>
+</section>
+{% endblock %}
