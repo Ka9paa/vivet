@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "Vivet"
-    database_url: str = "sqlite:///./vivet.db"
+    database_url: str = "sqlite:////tmp/vivet.db"
     jwt_secret: str = "change-me"
     jwt_expire_minutes: int = 720
     cookie_secure: bool = False
