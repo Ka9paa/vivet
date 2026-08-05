@@ -1,6 +1,7 @@
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from html import escape
+from pathlib import Path
 import secrets
 import urllib.parse
 import httpx
@@ -31,9 +32,13 @@ def migrate_legacy_schema():
             connection.execute(text("ALTER TABLE applications ADD COLUMN version VARCHAR(32) NOT NULL DEFAULT '1.0.0'"))
 
 migrate_legacy_schema()
-app=FastAPI(title=settings.app_name,version='0.3.0')
-app.mount('/static',StaticFiles(directory='app/static'),name='static')
-templates=Jinja2Templates(directory='app/templates')
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / 'static'
+TEMPLATE_DIR = BASE_DIR / 'templates'
+
+app = FastAPI(title=settings.app_name, version='0.3.0')
+app.mount('/static', StaticFiles(directory=str(STATIC_DIR), check_dir=True), name='static')
+templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 NAV=[('/dashboard','Dashboard'),('/dashboard/applications','Applications'),('/dashboard/licenses','Licenses'),('/dashboard/users','Users'),('/dashboard/resellers','Resellers'),('/dashboard/hwid-resets','HWID Resets'),('/dashboard/bans','Bans'),('/dashboard/analytics','Analytics'),('/dashboard/logs','Logs'),('/dashboard/settings','Settings'),('/dashboard/api-keys','API Keys'),('/dashboard/webhooks','Webhooks'),('/dashboard/discord','Discord Access')]
 
 def now_utc(): return datetime.now(timezone.utc)
